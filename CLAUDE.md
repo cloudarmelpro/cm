@@ -54,6 +54,16 @@ Les contraintes par réseau vivent dans `src/lib/networks.ts` (limites de caract
 hashtags, règles éditoriales). Toute nouvelle plateforme s'ajoute là, et le prompt
 la reprend automatiquement via `networkBriefing()`.
 
+## Sécurité
+
+Audit et décisions dans `docs/securite.md`. Un point à ne pas oublier : **l'API est
+publique, sans authentification ni limitation de débit**. Risque accepté le 13 août 2026
+tant que l'URL n'est pas diffusée. À lever **avant de donner l'URL à quiconque** — la
+Deployment Protection de Vercel suffit et ne demande aucun code.
+
+Les entrées sont bornées par `.max()` dans `schema.ts` : ne pas retirer ces bornes, elles
+sont ce qui empêche une requête unique de déclencher 7 appels modèle sur 50 000 caractères.
+
 ## Outillage disponible
 
 Agents (`.claude/agents/`) :
