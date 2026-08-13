@@ -144,6 +144,15 @@
     font-family: var(--font-dm-sans), system-ui, sans-serif;
   }
   html {
+    scroll-behavior: smooth;
+  }
+  /* Personne n'a demandé d'animation à qui a désactivé les animations. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+  html {
     @apply font-sans;
   }
 }

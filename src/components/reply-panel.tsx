@@ -2,6 +2,7 @@
 
 import { Loader2, MessageSquareReply, TriangleAlert } from "lucide-react";
 import { useState } from "react";
+import { StreamIn } from "@/components/reveal";
 import { CopyButton, Field, Section } from "@/components/section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -128,7 +129,8 @@ export function ReplyPanel({ brand }: { brand: Brand }) {
       </Section>
 
       {reply ? (
-        <Card className="gap-0 p-5">
+        <StreamIn>
+          <Card className="gap-0 p-5">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant={SENTIMENT_VARIANT[reply.sentiment]}>
               {reply.sentiment}
@@ -182,9 +184,10 @@ export function ReplyPanel({ brand }: { brand: Brand }) {
                   {r.text}
                 </p>
               </div>
-            ))}
-          </div>
-        </Card>
+              ))}
+            </div>
+          </Card>
+        </StreamIn>
       ) : null}
 
       {/* En dernier, pour la même raison que dans le panneau de génération. */}

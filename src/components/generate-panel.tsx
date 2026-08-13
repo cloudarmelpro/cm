@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { PostCard } from "@/components/post-card";
+import { StreamIn } from "@/components/reveal";
 import { Field, Section, SelectableCard } from "@/components/section";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -173,12 +174,12 @@ export function GeneratePanel({ brand }: { brand: Brand }) {
       </Section>
 
       {object?.angle ? (
-        <div className="bg-accent/50 border-primary/25 rounded-lg border p-4">
+        <StreamIn className="bg-accent/50 border-primary/25 rounded-lg border p-4">
           <p className="text-accent-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
             Angle éditorial
           </p>
           <p className="text-sm">{object.angle}</p>
-        </div>
+        </StreamIn>
       ) : null}
 
       {object?.failed?.length ? (
@@ -206,7 +207,9 @@ export function GeneratePanel({ brand }: { brand: Brand }) {
       {object?.posts?.length ? (
         <div className="space-y-4">
           {object.posts.filter(Boolean).map((post, i) => (
-            <PostCard key={post?.network ?? i} post={post ?? {}} />
+            <StreamIn key={post?.network ?? i}>
+              <PostCard post={post ?? {}} />
+            </StreamIn>
           ))}
         </div>
       ) : null}

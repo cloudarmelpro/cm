@@ -2,6 +2,7 @@
 
 import { Check, Copy } from "lucide-react";
 import { useState } from "react";
+import { Reveal } from "@/components/reveal";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -23,15 +24,17 @@ export function Section({
   className?: string;
 }) {
   return (
-    <section className={cn("space-y-4", className)}>
-      <div className="space-y-1">
-        <h2 className="text-base font-semibold tracking-tight">{title}</h2>
-        {description ? (
-          <p className="text-muted-foreground text-sm">{description}</p>
-        ) : null}
-      </div>
-      {children}
-    </section>
+    <Reveal>
+      <section className={cn("space-y-4", className)}>
+        <div className="space-y-1">
+          <h2 className="text-base font-semibold tracking-tight">{title}</h2>
+          {description ? (
+            <p className="text-muted-foreground text-sm">{description}</p>
+          ) : null}
+        </div>
+        {children}
+      </section>
+    </Reveal>
   );
 }
 
