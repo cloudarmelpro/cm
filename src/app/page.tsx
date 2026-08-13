@@ -8,6 +8,7 @@ import {
   RotateCcw,
   Sparkles,
 } from "lucide-react";
+import { MotionConfig } from "motion/react";
 import { useState } from "react";
 import { BrandPanel } from "@/components/brand-panel";
 import { GeneratePanel } from "@/components/generate-panel";
@@ -40,7 +41,10 @@ export default function Home() {
   const profileReady = brand.name.trim().length > 0;
 
   return (
-    <div className="flex min-h-full flex-col">
+    // reducedMotion="user" : motion coupe lui-même les animations de position
+    // quand le système le demande, sans qu'on ait à brancher le rendu.
+    <MotionConfig reducedMotion="user">
+      <div className="flex min-h-full flex-col">
       <header className="bg-card sticky top-0 z-20">
         <div className="mx-auto flex w-full max-w-3xl items-center gap-3 px-6 py-3">
           <span className="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-lg">
@@ -127,8 +131,9 @@ export default function Home() {
           <GeneratePanel brand={brand} />
         ) : (
           <ReplyPanel brand={brand} />
-        )}
-      </main>
-    </div>
+          )}
+        </main>
+      </div>
+    </MotionConfig>
   );
 }

@@ -1,15 +1,18 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 
 /**
  * Apparition au défilement : léger fondu et montée de quelques pixels.
  *
- * Deux règles tenues ici. D'abord `once: true` — une section qui rejoue son
- * animation à chaque passage devient fatigante dans un outil qu'on utilise
- * plusieurs fois par jour. Ensuite le respect de `prefers-reduced-motion` :
- * si l'utilisateur a désactivé les animations, on rend le contenu tel quel,
- * sans transition ni décalage.
+ * `once: true` — une section qui rejoue son animation à chaque passage devient
+ * fatigante dans un outil qu'on utilise plusieurs fois par jour.
+ *
+ * La préférence « animations réduites » n'est PAS traitée ici par une condition.
+ * Un `if (useReducedMotion())` qui renvoie un arbre différent casse l'hydratation :
+ * le serveur ignore la préférence du navigateur et rend l'autre branche. C'est
+ * `MotionConfig reducedMotion="user"`, posé une fois à la racine, qui s'en charge
+ * au moment de l'exécution — même arbre rendu des deux côtés.
  */
 export function Reveal({
   children,
@@ -20,10 +23,6 @@ export function Reveal({
   delay?: number;
   className?: string;
 }) {
-  const reduced = useReducedMotion();
-
-  if (reduced) return <div className={className}>{children}</div>;
-
   return (
     <motion.div
       className={className}
@@ -49,10 +48,6 @@ export function StreamIn({
   children: React.ReactNode;
   className?: string;
 }) {
-  const reduced = useReducedMotion();
-
-  if (reduced) return <div className={className}>{children}</div>;
-
   return (
     <motion.div
       className={className}
