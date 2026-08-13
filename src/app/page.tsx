@@ -41,7 +41,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-full flex-col">
-      <header className="bg-card sticky top-0 z-20 border-b">
+      <header className="bg-card sticky top-0 z-20">
         <div className="mx-auto flex w-full max-w-3xl items-center gap-3 px-6 py-3">
           <span className="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-lg">
             <Sparkles className="size-4" />
