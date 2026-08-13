@@ -106,7 +106,7 @@ export default function Home() {
                 onClick={() => setStep(s.id)}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "focus-visible:ring-ring/50 flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition focus-visible:ring-[3px] focus-visible:outline-none",
+                  "focus-visible:ring-ring/50 flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition focus-visible:ring-[3px] focus-visible:outline-none",
                   active
                     ? "border-primary text-primary bg-accent/60 font-medium"
                     : "text-muted-foreground border-transparent hover:text-foreground",
