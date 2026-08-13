@@ -126,6 +126,19 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /*
+   * Tailwind v4 ne met plus cursor:pointer sur les boutons : il suit le défaut
+   * du navigateur, qui est cursor:default. On le rétablit ici pour tout ce qui
+   * est cliquable, plutôt que d'ajouter la classe sur chaque composant.
+   */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="menuitem"],
+  [role="option"],
+  label:has(> input[type="checkbox"]),
+  a[href] {
+    cursor: pointer;
+  }
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-dm-sans), system-ui, sans-serif;
