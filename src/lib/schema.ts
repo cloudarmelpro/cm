@@ -2,19 +2,19 @@ import { z } from "zod";
 import { NETWORK_IDS } from "./networks";
 
 export const brandSchema = z.object({
-  name: z.string().min(1, "Le nom de l'entreprise est requis"),
-  sector: z.string().default(""),
-  audience: z.string().default(""),
-  tone: z.string().default(""),
+  name: z.string().min(1, "Le nom de l'entreprise est requis").max(120),
+  sector: z.string().max(500).default(""),
+  audience: z.string().max(500).default(""),
+  tone: z.string().max(500).default(""),
   /** Ce qu'on ne dit jamais : concurrents, promesses interdites, mots bannis. */
-  avoid: z.string().default(""),
-  language: z.string().default("français"),
+  avoid: z.string().max(1000).default(""),
+  language: z.string().max(50).default("français"),
   /**
    * Publications existantes collées par l'utilisateur. Décrire un ton en mots
    * ("chaleureux, direct") reste vague ; deux vrais posts valent mieux que
    * dix adjectifs, le modèle imite une voix au lieu de l'inventer.
    */
-  examples: z.string().default(""),
+  examples: z.string().max(5000).default(""),
 });
 
 export type Brand = z.infer<typeof brandSchema>;
@@ -103,9 +103,9 @@ export type Brief = z.infer<typeof briefSchema>;
 export const generateRequestSchema = z.object({
   brand: brandSchema,
   networks: z.array(z.enum(NETWORK_IDS)).min(1, "Choisis au moins un réseau"),
-  topic: z.string().min(3, "Décris le sujet du post"),
+  topic: z.string().min(3, "Décris le sujet du post").max(2000),
   goal: z.enum(["notoriete", "engagement", "trafic", "conversion", "recrutement"]),
-  extra: z.string().default(""),
+  extra: z.string().max(2000).default(""),
 });
 
 export const GOALS: Record<
@@ -177,6 +177,6 @@ export type Reply = z.infer<typeof replySchema>;
 export const replyRequestSchema = z.object({
   brand: brandSchema,
   network: z.enum(NETWORK_IDS),
-  message: z.string().min(2, "Colle le message reçu"),
-  context: z.string().default(""),
+  message: z.string().min(2, "Colle le message reçu").max(5000),
+  context: z.string().max(2000).default(""),
 });
