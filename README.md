@@ -71,5 +71,3 @@ vercel                       # lie le projet
 vercel env add AI_GATEWAY_API_KEY
 vercel --prod
 ```
-
-# cm
