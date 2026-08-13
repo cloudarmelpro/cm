@@ -1,22 +1,41 @@
 "use client";
 
+import { Loader2, MessageSquareReply, TriangleAlert } from "lucide-react";
 import { useState } from "react";
-import { CopyButton, Field, Select, Textarea } from "@/components/ui";
+import { CopyButton, Field, Section } from "@/components/section";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { NETWORK_LIST, type NetworkId } from "@/lib/networks";
 import type { Brand, Reply } from "@/lib/schema";
 
-const SENTIMENT_STYLE: Record<Reply["sentiment"], string> = {
-  positif: "bg-emerald-950 text-emerald-300",
-  neutre: "bg-neutral-800 text-neutral-300",
-  negatif: "bg-amber-950 text-amber-300",
-  crise: "bg-red-950 text-red-300",
+const SENTIMENT_VARIANT: Record<
+  Reply["sentiment"],
+  "default" | "secondary" | "destructive" | "outline"
+> = {
+  positif: "secondary",
+  neutre: "outline",
+  negatif: "default",
+  crise: "destructive",
 };
 
-const PRIORITY_STYLE: Record<Reply["priority"], string> = {
-  basse: "bg-neutral-800 text-neutral-400",
-  normale: "bg-sky-950 text-sky-300",
-  haute: "bg-amber-950 text-amber-300",
-  urgente: "bg-red-950 text-red-300",
+const PRIORITY_VARIANT: Record<
+  Reply["priority"],
+  "default" | "secondary" | "destructive" | "outline"
+> = {
+  basse: "outline",
+  normale: "secondary",
+  haute: "default",
+  urgente: "destructive",
 };
 
 export function ReplyPanel({ brand }: { brand: Brand }) {
@@ -31,11 +50,11 @@ export function ReplyPanel({ brand }: { brand: Brand }) {
     event.preventDefault();
 
     if (!brand.name.trim()) {
-      setError("Renseigne au moins le nom de l'entreprise dans le profil.");
+      setError("Renseignez au moins le nom de l'entreprise dans le profil.");
       return;
     }
     if (message.trim().length < 2) {
-      setError("Colle le message reçu.");
+      setError("Collez le message reçu.");
       return;
     }
 
@@ -61,135 +80,132 @@ export function ReplyPanel({ brand }: { brand: Brand }) {
   }
 
   return (
-    <div className="space-y-6">
-      <form
-        onSubmit={onSubmit}
-        className="space-y-4 rounded-xl border border-neutral-800 bg-neutral-900/40 p-5"
+    <form onSubmit={onSubmit} className="space-y-10">
+      <Section
+        title="Message reçu"
+        description="Commentaire, message privé, avis ou mention à traiter."
       >
-        <div className="grid gap-4 md:grid-cols-[200px_1fr]">
+        <div className="grid gap-4 sm:grid-cols-[200px_1fr]">
           <Field label="Réseau">
             <Select
               value={network}
-              onChange={(e) => setNetwork(e.target.value as NetworkId)}
+              onValueChange={(v) => setNetwork(v as NetworkId)}
             >
-              {NETWORK_LIST.map((n) => (
-                <option key={n.id} value={n.id}>
-                  {n.label}
-                </option>
-              ))}
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {NETWORK_LIST.map((n) => (
+                  <SelectItem key={n.id} value={n.id}>
+                    {n.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </Field>
 
-          <Field label="Message reçu" hint="Commentaire, DM, avis, mention.">
+          <Field label="Contenu du message">
             <Textarea
               rows={4}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Ex. Commande passée il y a 10 jours, toujours rien et personne ne répond au téléphone."
+              placeholder="Commande passée il y a 10 jours, toujours rien et personne ne répond au téléphone."
             />
           </Field>
         </div>
 
         <Field
           label="Contexte interne"
-          hint="Ce que l'agent doit savoir : historique client, statut de la commande, position officielle."
+          hint="Ce que l'agent doit savoir : statut réel de la commande, position officielle, historique client."
         >
           <Textarea
             rows={2}
             value={context}
             onChange={(e) => setContext(e.target.value)}
-            placeholder="Ex. retard fournisseur connu, expéditions reprises depuis lundi"
+            placeholder="Retard fournisseur connu, expéditions reprises depuis lundi"
           />
         </Field>
-
-        <div className="flex items-center gap-3">
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-neutral-900 transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {loading ? "Analyse…" : "Proposer une réponse"}
-          </button>
-          {error ? <span className="text-sm text-red-400">{error}</span> : null}
-        </div>
-      </form>
+      </Section>
 
       {reply ? (
-        <div className="space-y-4 rounded-xl border border-neutral-800 bg-neutral-900/40 p-5">
+        <Card className="gap-0 p-5">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge className={SENTIMENT_STYLE[reply.sentiment]}>
+            <Badge variant={SENTIMENT_VARIANT[reply.sentiment]}>
               {reply.sentiment}
             </Badge>
-            <Badge className={PRIORITY_STYLE[reply.priority]}>
+            <Badge variant={PRIORITY_VARIANT[reply.priority]}>
               priorité {reply.priority}
             </Badge>
-            <Badge className="bg-neutral-800 text-neutral-300">
+            <Badge variant="outline">
               {reply.publicOrPrivate === "prive"
                 ? "à basculer en privé"
                 : "réponse publique"}
             </Badge>
             {reply.escalate ? (
-              <Badge className="bg-red-950 text-red-300">à escalader</Badge>
+              <Badge variant="destructive" className="gap-1">
+                <TriangleAlert className="size-3" />à escalader
+              </Badge>
             ) : null}
           </div>
 
-          <div>
-            <Label>Intention détectée</Label>
-            <p className="text-sm text-neutral-200">{reply.intent}</p>
+          <div className="mt-4 space-y-1">
+            <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+              Intention détectée
+            </p>
+            <p className="text-sm">{reply.intent}</p>
           </div>
 
           {reply.escalate && reply.escalateReason ? (
-            <div className="rounded-lg border border-red-900/60 bg-red-950/30 p-3">
-              <Label>Pourquoi escalader</Label>
-              <p className="text-sm text-red-200">{reply.escalateReason}</p>
+            <div className="border-destructive/30 bg-destructive/5 mt-4 rounded-lg border p-3">
+              <p className="text-destructive text-xs font-semibold tracking-wide uppercase">
+                Pourquoi escalader
+              </p>
+              <p className="mt-1 text-sm">{reply.escalateReason}</p>
             </div>
           ) : null}
 
+          <Separator className="my-5" />
+
           <div className="space-y-3">
-            <Label>Réponses proposées</Label>
+            <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+              Réponses proposées
+            </p>
             {reply.replies.map((r, i) => (
-              <div
-                key={i}
-                className="rounded-lg border border-neutral-800 bg-neutral-950/60 p-3"
-              >
+              <div key={i} className="bg-muted/40 rounded-lg border p-3">
                 <div className="mb-2 flex items-center justify-between gap-3">
-                  <span className="text-xs font-medium text-neutral-400 uppercase">
+                  <span className="text-muted-foreground text-xs font-medium uppercase">
                     {r.style}
                   </span>
                   <CopyButton text={r.text} />
                 </div>
-                <p className="text-sm whitespace-pre-wrap text-neutral-100">
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">
                   {r.text}
                 </p>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       ) : null}
-    </div>
-  );
-}
 
-function Badge({
-  className,
-  children,
-}: {
-  className: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <span
-      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${className}`}
-    >
-      {children}
-    </span>
-  );
-}
-
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="mb-1 text-[11px] font-semibold tracking-wide text-neutral-500 uppercase">
-      {children}
-    </p>
+      {/* En dernier, pour la même raison que dans le panneau de génération. */}
+      <div className="bg-background sticky bottom-0 -mx-6 border-t px-6 py-3">
+        <div className="flex items-center gap-3">
+          <p className="text-muted-foreground hidden text-sm sm:block">
+            L&apos;agent analyse puis propose des réponses prêtes à publier.
+          </p>
+          <Button type="submit" disabled={loading} className="ml-auto gap-2">
+            {loading ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <MessageSquareReply className="size-4" />
+            )}
+            {loading ? "Analyse…" : "Proposer une réponse"}
+          </Button>
+        </div>
+        {error ? (
+          <p className="text-destructive mt-2 text-sm">{error}</p>
+        ) : null}
+      </div>
+    </form>
   );
 }
