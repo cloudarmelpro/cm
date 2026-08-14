@@ -1,0 +1,31 @@
+# Base de données locale de développement.
+#
+# Le port hôte est 5433 et non 5432 : un autre projet occupe déjà le port
+# standard sur cette machine. Changer ici si le 5433 venait à être pris aussi.
+#
+#   docker compose up -d      démarre
+#   docker compose down       arrête, en conservant les données
+#   docker compose down -v    arrête ET efface les données
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: cm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cm
+      POSTGRES_PASSWORD: cm
+      POSTGRES_DB: cm
+    ports:
+      - "5433:5432"
+    volumes:
+      - cm-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      # Sans cela, le conteneur est « démarré » avant que Postgres n'accepte
+      # les connexions, et la première migration échoue sans raison visible.
+      test: ["CMD-SHELL", "pg_isready -U cm -d cm"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  cm-postgres-data:
