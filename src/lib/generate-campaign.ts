@@ -7,6 +7,7 @@ import {
 } from "ai";
 import { CM_SYSTEM_PROMPT, MODEL, brandBlock } from "./agent";
 import { NETWORKS, type NetworkId, networkBriefing } from "./networks";
+import { recordUsage } from "./quota";
 import {
   GOALS,
   type Brand,
@@ -23,7 +24,37 @@ type Input = {
   topic: string;
   goal: keyof typeof GOALS;
   extra: string;
+  /** Propriétaire de la consommation. Absent hors contexte authentifié. */
+  organizationId?: string;
+  userId?: string | null;
 };
+
+/**
+ * Enregistre un appel modèle abouti.
+ *
+ * Appelé après coup, jamais avant : un réseau qui échoue en 429 n'a rien coûté
+ * et ne doit pas être décompté. Une panne de comptabilité ne doit pas non plus
+ * faire échouer une génération réussie, d'où le `catch`.
+ */
+async function bill(
+  input: Input,
+  kind: "brief" | "post" | "repair",
+  network?: NetworkId,
+): Promise<void> {
+  if (!input.organizationId) return;
+
+  try {
+    await recordUsage({
+      organizationId: input.organizationId,
+      userId: input.userId ?? null,
+      kind,
+      network: network ?? null,
+      model: typeof MODEL === "string" ? MODEL : "google",
+    });
+  } catch (error) {
+    console.error("[cm/usage]", error);
+  }
+}
 
 /* ------------------------------------------------------------------ */
 /* Contrôles déterministes                                             */
@@ -125,6 +156,7 @@ ${extra ? `Contraintes et informations fournies : ${extra}` : "Aucune informatio
 Extrais les faits vérifiables de ce brief, sans jamais en inventer.`,
   });
 
+  await bill(input, "brief");
   return output;
 }
 
@@ -193,6 +225,8 @@ async function writePost(
   });
 
   const firstPass = Date.now() - started;
+  await bill(input, "post", network);
+
   const post: Post = { ...output, network };
   const violations = findViolations(post);
 
@@ -222,6 +256,8 @@ ${violations.map((v) => `- ${v}`).join("\n")}
 Renvoie le post corrigé. Ne change que ce qui doit l'être : garde l'angle, le ton
 et les faits. Ne rallonge pas le texte pour compenser.`,
   });
+
+  await bill(input, "repair", network);
 
   const fixed: Post = { ...repaired, network };
   const remaining = findViolations(fixed);

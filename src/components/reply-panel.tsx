@@ -17,6 +17,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { NETWORK_LIST, type NetworkId } from "@/lib/networks";
+import type { QuotaState } from "@/lib/quota-shared";
 import type { Brand, Reply } from "@/lib/schema";
 
 const SENTIMENT_VARIANT: Record<
@@ -39,7 +40,13 @@ const PRIORITY_VARIANT: Record<
   urgente: "destructive",
 };
 
-export function ReplyPanel({ brand }: { brand: Brand }) {
+export function ReplyPanel({
+  brand,
+  quota,
+}: {
+  brand: Brand;
+  quota: QuotaState;
+}) {
   const [network, setNetwork] = useState<NetworkId>("instagram");
   const [message, setMessage] = useState("");
   const [context, setContext] = useState("");
@@ -56,6 +63,12 @@ export function ReplyPanel({ brand }: { brand: Brand }) {
     }
     if (message.trim().length < 2) {
       setError("Collez le message reçu.");
+      return;
+    }
+    if (quota.remaining < 1) {
+      setError(
+        `Crédits épuisés. Réinitialisation le ${quota.resetsOn.toLocaleDateString("fr-FR")}.`,
+      );
       return;
     }
 

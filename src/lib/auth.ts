@@ -7,6 +7,19 @@ import { sendEmail } from "./email";
 const googleId = process.env.GOOGLE_CLIENT_ID;
 const googleSecret = process.env.GOOGLE_CLIENT_SECRET;
 
+/** Slug d'organisation lisible : accents retirés, espaces en tirets. */
+function slugify(value: string): string {
+  return (
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 40) || "espace"
+  );
+}
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg", schema }),
 
@@ -57,6 +70,48 @@ export const auth = betterAuth({
       "/sign-in/email": { window: 60, max: 5 },
       "/sign-up/email": { window: 60, max: 3 },
       "/forget-password": { window: 60, max: 3 },
+    },
+  },
+
+  databaseHooks: {
+    user: {
+      create: {
+        /**
+         * Chaque nouvel inscrit reçoit sa propre organisation.
+         *
+         * Tout le modèle de données rattache les marques à une organisation,
+         * jamais à un utilisateur. Sans cette création automatique, un compte
+         * solo n'aurait nulle part où ranger ses marques et l'application
+         * serait inutilisable dès la première seconde.
+         *
+         * L'insertion est faite directement en base plutôt que par l'API
+         * Better Auth : appeler `auth` depuis sa propre configuration créerait
+         * une référence circulaire.
+         */
+        after: async (createdUser) => {
+          const now = new Date();
+          const organizationId = crypto.randomUUID();
+          const base =
+            createdUser.name?.trim() || createdUser.email.split("@")[0];
+
+          await db.insert(schema.organization).values({
+            id: organizationId,
+            name: base,
+            // Le slug est unique : on suffixe pour éviter toute collision entre
+            // deux personnes portant le même nom.
+            slug: `${slugify(base)}-${organizationId.slice(0, 8)}`,
+            createdAt: now,
+          });
+
+          await db.insert(schema.member).values({
+            id: crypto.randomUUID(),
+            organizationId,
+            userId: createdUser.id,
+            role: "owner",
+            createdAt: now,
+          });
+        },
+      },
     },
   },
 

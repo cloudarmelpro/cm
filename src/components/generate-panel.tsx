@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { NETWORKS, NETWORK_LIST, type NetworkId } from "@/lib/networks";
+import { estimateCampaignCost, type QuotaState } from "@/lib/quota-shared";
 import { GOALS, campaignSchema, type Brand } from "@/lib/schema";
 import { cn } from "@/lib/utils";
 
@@ -32,7 +33,13 @@ const GOAL_ICONS: Record<Goal, React.ReactNode> = {
   recrutement: <Briefcase />,
 };
 
-export function GeneratePanel({ brand }: { brand: Brand }) {
+export function GeneratePanel({
+  brand,
+  quota,
+}: {
+  brand: Brand;
+  quota: QuotaState;
+}) {
   const [topic, setTopic] = useState("");
   const [goal, setGoal] = useState<Goal>("engagement");
   const [extra, setExtra] = useState("");
@@ -81,6 +88,16 @@ export function GeneratePanel({ brand }: { brand: Brand }) {
     }
     if (networks.length === 0) {
       setFormError("Sélectionnez au moins un réseau.");
+      return;
+    }
+
+    // Contrôle de confort : le serveur refusera de toute façon. Mieux vaut le
+    // dire avant d'attendre une minute pour rien.
+    const cost = estimateCampaignCost(networks.length);
+    if (cost > quota.remaining) {
+      setFormError(
+        `Cette campagne coûte ${cost} crédits, il vous en reste ${quota.remaining}. Retirez des réseaux ou attendez le ${quota.resetsOn.toLocaleDateString("fr-FR")}.`,
+      );
       return;
     }
 
@@ -223,7 +240,7 @@ export function GeneratePanel({ brand }: { brand: Brand }) {
           <p className="text-muted-foreground text-sm">
             {networks.length === 0
               ? "Aucun réseau sélectionné"
-              : `${networks.length} réseau${networks.length > 1 ? "x" : ""} sélectionné${networks.length > 1 ? "s" : ""}`}
+              : `${networks.length} réseau${networks.length > 1 ? "x" : ""} · ${estimateCampaignCost(networks.length)} crédits`}
           </p>
 
           <div className="ml-auto flex items-center gap-2">

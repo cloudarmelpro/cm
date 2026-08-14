@@ -1,17 +1,32 @@
 import { Output, generateText } from "ai";
 import { CM_SYSTEM_PROMPT, MODEL, brandBlock } from "@/lib/agent";
 import { NETWORKS } from "@/lib/networks";
+import { getQuota, recordUsage } from "@/lib/quota";
 import { replyRequestSchema, replySchema } from "@/lib/schema";
+import { getViewer } from "@/lib/session";
 
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
+  const viewer = await getViewer();
+  if (!viewer) {
+    return Response.json({ error: "Non authentifié" }, { status: 401 });
+  }
+
   const parsed = replyRequestSchema.safeParse(await req.json());
 
   if (!parsed.success) {
     return Response.json(
       { error: "Requête invalide", issues: parsed.error.issues },
       { status: 400 },
+    );
+  }
+
+  const quota = await getQuota(viewer.organizationId);
+  if (quota.remaining < 1) {
+    return Response.json(
+      { error: "Crédits épuisés", resetsOn: quota.resetsOn },
+      { status: 402 },
     );
   }
 
@@ -44,6 +59,15 @@ ${message}
 
 Analyse ce message, puis propose des réponses prêtes à publier.`,
     });
+
+    // Facturé après coup : un appel qui échoue n'a rien coûté.
+    await recordUsage({
+      organizationId: viewer.organizationId,
+      userId: viewer.userId,
+      kind: "reply",
+      network,
+      model: typeof MODEL === "string" ? MODEL : "google",
+    }).catch((error) => console.error("[cm/usage]", error));
 
     return Response.json(output);
   } catch (error) {
